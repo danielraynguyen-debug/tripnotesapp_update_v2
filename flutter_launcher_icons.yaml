@@ -1,0 +1,32 @@
+# Configuration for flutter_launcher_icons
+# Run: flutter pub get && flutter pub run flutter_launcher_icons:main
+
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/app_icon.png"
+  
+  # Android adaptive icon background color
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/app_icon.png"
+  
+  # Min SDK for Android
+  min_sdk_android: 21
+  
+  # Web configuration
+  web:
+    generate: true
+    image_path: "assets/images/app_icon.png"
+    background_color: "#FFFFFF"
+    theme_color: "#4F46E5"
+  
+  # Windows configuration
+  windows:
+    generate: true
+    image_path: "assets/images/app_icon.png"
+    icon_size: 48
+  
+  # macOS configuration
+  macos:
+    generate: true
+    image_path: "assets/images/app_icon.png"

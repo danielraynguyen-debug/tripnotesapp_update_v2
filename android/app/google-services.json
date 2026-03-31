@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "592824012115",
+    "project_id": "trip-notes-app-0001",
+    "storage_bucket": "trip-notes-app-0001.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:592824012115:android:34865ce2dae5cac06765a6",
+        "android_client_info": {
+          "package_name": "com.example.tripnotesapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDY4m_x1UhOTrPYg7J9_HanFYUx68bz7kk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
