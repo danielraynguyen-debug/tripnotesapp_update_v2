@@ -11,7 +11,7 @@ import 'presentation/bloc/auth_bloc.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/splash_screen.dart';
-import 'services/update_service.dart';
+import 'services/drive_update_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -35,16 +35,13 @@ void main() async {
   
   // Check for updates after app launch (with delay to not block UI)
   Future.delayed(const Duration(seconds: 5), () {
-    _checkForAppUpdate();
+    // DriveUpdateService will be called after first frame is rendered
   });
 }
 
-/// Check for GitHub updates
-Future<void> _checkForAppUpdate() async {
-  await GithubUpdateService.checkAndDoUpdate(
-    onLog: (message) => debugPrint('[AppUpdate] $message'),
-    onError: (error) => debugPrint('[AppUpdate] ERROR: $error'),
-  );
+/// Check for Drive updates - called from first screen
+Future<void> checkForAppUpdate(BuildContext context) async {
+  await DriveUpdateService.checkForUpdate(context);
 }
 
 class MyApp extends StatelessWidget {

@@ -12,7 +12,7 @@ import 'tabs/profile_tab.dart';
 import '../widgets/create_ride_dialog.dart';
 import 'login_screen.dart';
 import 'ride_detail_screen.dart';
-
+import '../../../main.dart';
 
 class HomeScreen extends StatefulWidget {
   static final GlobalKey<_HomeScreenState> homeKey = GlobalKey<_HomeScreenState>();
@@ -39,6 +39,12 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkPendingRideFromNotification();
+      // Check for app updates after 5 seconds
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted) {
+          checkForAppUpdate(context);
+        }
+      });
     });
   }
 

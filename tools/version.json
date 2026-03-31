@@ -1,0 +1,7 @@
+{
+  "version": "1.0.0",
+  "apk_url": "https://drive.google.com/uc?export=download&id=YOUR_FILE_ID",
+  "release_notes": "Phiên bản đầu tiên với tính năng in-app update",
+  "force_update": false,
+  "min_android_version": 21
+}
