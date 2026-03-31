@@ -23,12 +23,9 @@
     - **Quản lý ghi chú**: Tab quản lý với Filter Pill (Tất cả, Ghi chú của tôi, Đã hoàn thành).
 - **Tài khoản**: Cập nhật ảnh đại diện (Storage nén dung lượng), hiển thị Hạng thành viên (Hạng Chì), đăng xuất an toàn.
 - **Thông báo**: Push Notification (FCM v1) đa dòng, điều hướng sâu (Deep link) từ thông báo vào chi tiết chuyến xe. Đã fix lỗi `style`/`bigText` invalid JSON payload.
-- **Cập nhật ứng dụng (In-App Update via GitHub)**:
-    - Setup `in_app_update_me` package và GitHub API integration
-    - GitHub Actions workflow tự động build & release signed APK
-    - Tất cả thiết bị tự động check và cài đặt update từ GitHub Releases
-    - Repository: `tripnotesapp_update_v2` (Public)
-    - **Đã xử lý**: Fix dependency conflicts (`intl` version) & cập nhật syntax action hiện đại cho GitHub Actions.
+- **Cập nhật ứng dụng (In-App Update via Google Drive)**:
+    - Bỏ qua update qua Github, chuyển sang dùng file `version.json` được upload trên thư mục Google Drive: `1zx1CRD8yqi6lzD46ZzcIYuelTqpJ2aWB`
+    - Logic so sánh phiên bản tự động bằng API get trực tiếp file `.json` và gọi lệnh download `.apk`.
 
 ## 3. Danh sách các file cần bảo trì
 | File | Chức năng chính |
@@ -41,10 +38,8 @@
 | `lib/presentation/widgets/create_ride_dialog.dart` | Form thông minh (Contact picker, My Location, Edit mode). |
 | `lib/presentation/screens/tabs/activity_tab.dart` | GPS Tracking, Return trip logic, Manage Notes UI. |
 | `lib/core/services/notification_service.dart` | Xử lý Deep Linking và Foreground notifications. |
-| `lib/services/update_service.dart` | **GitHub API integration - In-App Update logic**. |
-| `.github/workflows/release.yml` | **GitHub Actions - Build & Release signed APK**. |
-| `android/app/build.gradle.kts` | **Signing config với environment variables**. |
-| `pubspec.yaml` | **Dependencies cho in-app update và Firebase**. |
+| `lib/services/drive_update_service.dart` | **Google Drive API integration - Tự động tải file và cài đặt.** |
+| `android/app/build.gradle.kts` | Cấu hình cho App/Signing. |
 
 ## 4. Các công việc cần làm tiếp theo
 - [ ] Tối ưu hóa hiệu năng Background Location để tiết kiệm pin tối đa bằng cách tắt các service khi không có chuyến xe ongoing.
@@ -57,5 +52,4 @@
 - **Firestore**: Collections `rides`, `users`. Đã thiết lập Rule bảo mật theo UID.
 - **Firebase Messaging**: Topic `new_rides` cho tài xế và Token riêng cho người đăng.
 - **Firebase Storage**: Thư mục `avatars/` với Rule giới hạn kích thước < 2MB.
-- **Google Drive**: Thư mục chứa `app-release.apk` và `version.json` cho Force Update. Service Account cần `credentials.json`.
-- **VS Code Task**: Task "🚀 Build & Upload to Google Drive" để tự động hóa.
+- **Google Drive**: Thư mục chứa `app-release.apk` và `version.json` cho Force Update. ID thư mục tải file: `1zx1CRD8yqi6lzD46ZzcIYuelTqpJ2aWB`.

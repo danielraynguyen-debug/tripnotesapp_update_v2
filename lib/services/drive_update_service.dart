@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:in_app_update_me/in_app_update_me.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-/// Version info model for Google Drive/Cloud Storage
+/// Version info model for Google Drive
 class VersionInfo {
   final String version;
   final String apkUrl;
@@ -30,11 +30,15 @@ class VersionInfo {
   }
 }
 
-/// Service to check and perform updates from Google Drive/Cloud Storage
+/// Service to check and perform updates from Google Drive
 class DriveUpdateService {
-  static const String versionJsonUrl = 
-      'https://your-drive-url/version.json'; // Thay bằng URL của bạn
-  
+  // Drive folder: https://drive.google.com/drive/folders/1zx1CRD8yqi6lzD46ZzcIYuelTqpJ2aWB
+  // We need the raw download link for the version.json inside this folder.
+  // Make sure version.json is shared as "Anyone with the link can view".
+  // Note: For Google Drive, you usually need a direct download link.
+  // Format for direct link: https://drive.google.com/uc?export=download&id=FILE_ID
+  static const String versionJsonUrl = 'https://drive.google.com/uc?export=download&id=1zx1CRD8yqi6lzD46ZzcIYuelTqpJ2aWB_version_json_file_id'; // TODO: Replace with actual file ID of version.json
+
   static final DriveUpdateService _instance = DriveUpdateService._internal();
   factory DriveUpdateService() => _instance;
   DriveUpdateService._internal();
@@ -42,14 +46,15 @@ class DriveUpdateService {
   /// Check for update and prompt user
   static Future<void> checkForUpdate(BuildContext context) async {
     try {
-      logDebug('🔍 Checking for updates from Drive...');
+      logDebug('🔍 Checking for updates from Google Drive...');
       
-      final currentVersion = await _getCurrentVersion();
+      final packageInfo = await PackageInfo.fromPlatform();
+      final currentVersion = packageInfo.version;
       logDebug('📱 Current version: $currentVersion');
       
       final versionInfo = await _fetchVersionInfo();
       if (versionInfo == null) {
-        logDebug('❌ Could not fetch version info');
+        logDebug('❌ Could not fetch version info from Drive');
         return;
       }
       
@@ -71,19 +76,13 @@ class DriveUpdateService {
     }
   }
 
-  /// Get current app version
-  static Future<String> _getCurrentVersion() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    return packageInfo.version;
-  }
-
-  /// Fetch version info from URL
+  /// Fetch version info from Google Drive
   static Future<VersionInfo?> _fetchVersionInfo() async {
     try {
       final response = await http.get(
         Uri.parse(versionJsonUrl),
         headers: {'Accept': 'application/json'},
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 15));
       
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
@@ -93,7 +92,7 @@ class DriveUpdateService {
         return null;
       }
     } catch (e) {
-      logDebug('❌ Error fetching version: $e');
+      logDebug('❌ Error fetching version.json: $e');
       return null;
     }
   }
@@ -101,8 +100,12 @@ class DriveUpdateService {
   /// Compare versions (simple string comparison)
   static bool _isUpdateAvailable(String current, String latest) {
     try {
-      final currentParts = current.split('.').map(int.parse).toList();
-      final latestParts = latest.split('.').map(int.parse).toList();
+      // Remove 'v' prefix if present
+      final currentClean = current.replaceAll('v', '');
+      final latestClean = latest.replaceAll('v', '');
+
+      final currentParts = currentClean.split('.').map(int.parse).toList();
+      final latestParts = latestClean.split('.').map(int.parse).toList();
       
       for (int i = 0; i < latestParts.length; i++) {
         final currentPart = i < currentParts.length ? currentParts[i] : 0;
@@ -133,7 +136,7 @@ class DriveUpdateService {
         onWillPop: () async => !isForced,
         child: AlertDialog(
           title: Row(
-            children: [
+            children: const [
               Icon(Icons.system_update, color: Colors.blue),
               SizedBox(width: 8),
               Text('Cập nhật mới'),
@@ -145,10 +148,10 @@ class DriveUpdateService {
             children: [
               Text('Phiên bản hiện tại: $currentVersion'),
               Text('Phiên bản mới: ${versionInfo.version}'),
-              if (versionInfo.releaseNotes != null) ...[
-                SizedBox(height: 8),
-                Text('Ghi chú:'),
-                Text(versionInfo.releaseNotes!, style: TextStyle(fontSize: 12)),
+              if (versionInfo.releaseNotes != null && versionInfo.releaseNotes!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                const Text('Ghi chú:'),
+                Text(versionInfo.releaseNotes!, style: const TextStyle(fontSize: 12)),
               ],
             ],
           ),
@@ -156,14 +159,14 @@ class DriveUpdateService {
             if (!isForced)
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('Để sau'),
+                child: const Text('Để sau'),
               ),
             ElevatedButton(
               onPressed: () async {
                 Navigator.pop(context);
                 await _performUpdate(context, versionInfo.apkUrl);
               },
-              child: Text('Cập nhật ngay'),
+              child: const Text('Cập nhật ngay'),
             ),
           ],
         ),
@@ -171,24 +174,24 @@ class DriveUpdateService {
     );
   }
 
-  /// Perform the actual update
+  /// Perform the actual update using direct Drive URL
   static Future<void> _performUpdate(BuildContext context, String apkUrl) async {
     try {
-      logDebug('🚀 Starting update from: $apkUrl');
+      logDebug('🚀 Starting download from Google Drive...');
       
       if (Platform.isAndroid) {
-        await InAppUpdateMe.performInAppUpdate(
-          url: apkUrl,
-          onInstallStart: () {
-            logDebug('📲 Install started');
-          },
-          onInstallSuccess: () {
-            logDebug('✅ Install successful');
-          },
-          onInstallError: (error) {
-            logDebug('❌ Install error: $error');
-          },
+        // Show loading or toast here if needed
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đang tải bản cập nhật...')),
         );
+
+        final result = await InAppUpdateMe.downloadAndInstallUpdate(apkUrl);
+        
+        if (result) {
+            logDebug('✅ Install prompt triggered');
+        } else {
+            logDebug('❌ Failed to trigger install');
+        }
       }
     } catch (e) {
       logDebug('❌ Update error: $e');
@@ -202,6 +205,6 @@ class DriveUpdateService {
 
   /// Debug logging
   static void logDebug(String message) {
-    debugPrint('[DriveUpdate] $message');
+    debugPrint('[DriveUpdateService] $message');
   }
 }
