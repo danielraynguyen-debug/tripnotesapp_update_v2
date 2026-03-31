@@ -23,12 +23,17 @@
     - **Quản lý ghi chú**: Tab quản lý với Filter Pill (Tất cả, Ghi chú của tôi, Đã hoàn thành).
 - **Tài khoản**: Cập nhật ảnh đại diện (Storage nén dung lượng), hiển thị Hạng thành viên (Hạng Chì), đăng xuất an toàn.
 - **Thông báo**: Push Notification (FCM v1) đa dòng, điều hướng sâu (Deep link) từ thông báo vào chi tiết chuyến xe. Đã fix lỗi `style`/`bigText` invalid JSON payload.
-- **Cập nhật ứng dụng**: Chuyển từ Firebase App Distribution sang Google Drive (tự động build, upload APK và version.json).
+- **Cập nhật ứng dụng (In-App Update via GitHub)**:
+    - Setup `in_app_update_me` package và GitHub API integration
+    - GitHub Actions workflow tự động build & release signed APK
+    - Tất cả thiết bị tự động check và cài đặt update từ GitHub Releases
+    - Repository: `tripnotesapp_update_v2` (Public)
+    - **Đã xử lý**: Fix dependency conflicts (`intl` version) & cập nhật syntax action hiện đại cho GitHub Actions.
 
 ## 3. Danh sách các file cần bảo trì
 | File | Chức năng chính |
 | :--- | :--- |
-| `lib/main.dart` | Theme Indigo, Việt hóa (Localization), khởi tạo FCM. |
+| `lib/main.dart` | Theme Indigo, Việt hóa (Localization), khởi tạo FCM, **In-App Update check**. |
 | `lib/data/models/ride_model.dart` | Model mở rộng (Type, Creator, Driver info). |
 | `lib/data/repositories/ride_repository.dart` | Logic CRUD, Realtime Streams, Filters. |
 | `lib/presentation/screens/home_screen.dart` | GlobalKey navigation, Tab management. |
@@ -36,8 +41,10 @@
 | `lib/presentation/widgets/create_ride_dialog.dart` | Form thông minh (Contact picker, My Location, Edit mode). |
 | `lib/presentation/screens/tabs/activity_tab.dart` | GPS Tracking, Return trip logic, Manage Notes UI. |
 | `lib/core/services/notification_service.dart` | Xử lý Deep Linking và Foreground notifications. |
-| `tools/build_and_upload.py` | Build APK release và upload lên Google Drive (APK + version.json). |
-| `functions/index.js` | Cloud Functions gửi thông báo 2 chiều (New Ride & Accepted). Đã fix lỗi FCM payload. |
+| `lib/services/update_service.dart` | **GitHub API integration - In-App Update logic**. |
+| `.github/workflows/release.yml` | **GitHub Actions - Build & Release signed APK**. |
+| `android/app/build.gradle.kts` | **Signing config với environment variables**. |
+| `pubspec.yaml` | **Dependencies cho in-app update và Firebase**. |
 
 ## 4. Các công việc cần làm tiếp theo
 - [ ] Tối ưu hóa hiệu năng Background Location để tiết kiệm pin tối đa bằng cách tắt các service khi không có chuyến xe ongoing.

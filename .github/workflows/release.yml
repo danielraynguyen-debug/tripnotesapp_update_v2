@@ -36,7 +36,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'  # Adjust to your Flutter version
+          flutter-version: '3.24.0'
           channel: 'stable'
 
       # Cache Flutter dependencies
@@ -70,6 +70,12 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
+      # Generate SHA256 Checksum
+      - name: Generate Checksum
+        run: |
+          cd build/app/outputs/flutter-apk
+          sha256sum app-release.apk > checksums.txt
+
       # Get version from tag or input
       - name: Get Version
         id: get_version
@@ -80,15 +86,14 @@ jobs:
             echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           fi
 
-      # Create GitHub Release
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      # Create Release and Upload Assets using softprops/action-gh-release@v2
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.get_version.outputs.VERSION }}
-          release_name: Release ${{ steps.get_version.outputs.VERSION }}
+          name: Release ${{ steps.get_version.outputs.VERSION }}
           body: |
             🚀 Trip Notes App ${{ steps.get_version.outputs.VERSION }}
             
@@ -102,36 +107,11 @@ jobs:
             
             ## Checksums
             See attached files for SHA256 checksums.
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/checksums.txt
           draft: false
           prerelease: false
-
-      # Upload APK to Release
-      - name: Upload APK to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/app/outputs/flutter-apk/app-release.apk
-          asset_name: TripNotes-${{ steps.get_version.outputs.VERSION }}.apk
-          asset_content_type: application/vnd.android.package-archive
-
-      # Generate SHA256 Checksum
-      - name: Generate Checksum
-        run: |
-          cd build/app/outputs/flutter-apk
-          sha256sum app-release.apk > checksums.txt
-
-      # Upload Checksum
-      - name: Upload Checksum
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/app/outputs/flutter-apk/checksums.txt
-          asset_name: checksums-${{ steps.get_version.outputs.VERSION }}.txt
-          asset_content_type: text/plain
 
       # Cleanup Keystore (security)
       - name: Cleanup Keystore
@@ -139,13 +119,12 @@ jobs:
         run: |
           rm -f android/app/keystore.jks
 
-      # Notify success (optional - can integrate with Slack, Discord, etc.)
+      # Notify success
       - name: Notify Success
         if: success()
         run: |
           echo "✅ Build and release completed successfully!"
           echo "📦 Version: ${{ steps.get_version.outputs.VERSION }}"
-          echo "🔗 Release URL: ${{ steps.create_release.outputs.html_url }}"
 
   # Optional: Build for different architectures
   build-split-apk:
